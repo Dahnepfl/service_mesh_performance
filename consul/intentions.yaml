@@ -1,0 +1,54 @@
+apiVersion: consul.hashicorp.com/v1alpha1
+kind: ServiceIntentions
+metadata:
+  name: backend-to-counter
+spec:
+  destination:
+    name: counter-api
+  sources:
+    - name: backend-api
+      action: allow
+    - name: locust-worker
+      action: allow
+    - name: locust-master
+      action: allow
+---
+
+apiVersion: consul.hashicorp.com/v1alpha1
+kind: ServiceIntentions
+metadata:
+  name: locust-w-to-backend
+spec:
+  destination:
+    name: backend-api
+  sources:
+    - name: counter-api
+      action: allow
+    - name: locust-worker
+      action: allow
+    - name: locust-master
+      action: allow
+---
+
+apiVersion: consul.hashicorp.com/v1alpha1
+kind: ServiceIntentions
+metadata:
+  name: w-m
+spec:
+  destination:
+    name: locust-master
+  sources:
+    - name: locust-worker
+      action: allow
+---
+
+apiVersion: consul.hashicorp.com/v1alpha1
+kind: ServiceIntentions
+metadata:
+  name: m-w
+spec:
+  destination:
+    name: locust-worker
+  sources:
+    - name: locust-master
+      action: allow

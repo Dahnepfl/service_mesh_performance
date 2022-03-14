@@ -1,0 +1,27 @@
+apiVersion: kuma.io/v1alpha1
+kind: Retry
+mesh: default
+metadata:
+  name: retry-all-default
+spec:
+  sources:
+    - match:
+        kuma.io/service: '*'
+  destinations:
+    - match:
+        kuma.io/service: '*'
+  conf:
+    http:
+      numRetries: 5
+      perTryTimeout: 16s
+      backOff:
+        baseInterval: 0.025s
+        maxInterval: 0.250s
+    tcp:
+      maxConnectAttempts: 5
+    grpc:
+      numRetries: 5
+      perTryTimeout: 16s
+      backOff:
+        baseInterval: 0.025s
+        maxInterval: 0.250s

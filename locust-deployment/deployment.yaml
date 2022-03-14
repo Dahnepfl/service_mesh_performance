@@ -1,0 +1,89 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+    name: locust-master
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: locust-master
+    version: v1
+  name: locust-master
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: locust-master
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+          sidecar.istio.io/proxyCPULimit: "175m"
+          sidecar.istio.io/proxyMemoryLimit: "512Mi"
+          sidecar.istio.io/inject: "true"
+          linkerd.io/inject: "enabled"
+          consul.hashicorp.com/consul-sidecar-cpu-limit: "175m"
+          consul.hashicorp.com/consul-sidecar-memory-limit: "512Mi"
+          consul.hashicorp.com/connect-inject: "true"
+          config.linkerd.io/proxy-cpu-limit: '175m'
+      creationTimestamp: null
+      labels:
+        app: locust-master
+        version: v1
+    spec:
+      serviceAccountName: locust-master
+      nodeSelector:
+        app: test
+      #   nodeName: ip-172-31-12-234.eu-west-3.compute.internal
+      containers:
+      - image: dahny/git-locust:0.45
+   #  - image: prj-meshservices-docker.artifactory.svc.elca.ch/counter-api:0.5
+        args: ["--master", "--logfile=logs.txt"]
+        name: locust-master
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "150m"
+          limits:
+            memory: "512Mi"
+            cpu: "250m"
+        ports:
+        - containerPort: 5557
+          name: comm
+        - containerPort: 5558
+          name: comm-plus-1
+        - containerPort: 8089
+          name: web-ui
+      imagePullSecrets:
+        - name: artifactory
+  #  imagePullSecrets:
+  #     - name: regcred
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: locust-master
+  name: locust-master
+spec:
+  ports:
+  - port: 5557
+    name: communication
+  - port: 5558
+    name: communication-plus-1
+  - port: 8089
+    targetPort: 8089
+    name: web-ui
+  # - name: http-8089
+ #   port: 8089
+ #   protocol: TCP
+#   targetPort: 8089
+  selector:
+    app: locust-master
+  type: ClusterIP
+status:
+  loadBalancer: {}

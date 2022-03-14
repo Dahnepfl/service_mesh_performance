@@ -1,0 +1,28 @@
+apiVersion: consul.hashicorp.com/v1alpha1
+kind: ServiceRouter
+metadata:
+  name: no-timeout-retries-counter-api
+spec:
+  routes:
+    - match:
+        http:
+          pathPrefix: /
+      destination:
+        service: counter-api
+        requestTimeout: 0s
+        numRetries: 0
+
+---
+apiVersion: consul.hashicorp.com/v1alpha1
+kind: ServiceRouter
+metadata:
+  name: no-timeout-retries-backend-api
+spec:
+  routes:
+    - match:
+        http:
+          pathPrefix: /
+      destination:
+        service: backend-api
+        requestTimeout: 0s
+        numRetries: 0

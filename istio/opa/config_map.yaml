@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: opa-istio-config
+data:
+  config.yaml: |
+    services:
+      - name: controller
+        url: https://raw.githubusercontent.com/Dahnepfl/OPA/main/
+    bundles:
+      istio/authz:
+        service: controller
+        resource: bundle.tar.gz 
+    plugins:
+      envoy_ext_authz_grpc:
+        addr: :9191
+        path: istio/authz/allow
+        dry-run: false
+        enable-reflection: false

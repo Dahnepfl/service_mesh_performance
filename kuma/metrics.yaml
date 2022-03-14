@@ -1,0 +1,63 @@
+apiVersion: kuma.io/v1alpha1
+kind: Mesh
+metadata:
+  name: default
+spec:
+  mtls:
+    enabledBackend: ca-1
+    backends:
+    - name: ca-1
+      type: builtin
+
+  tracing:
+    defaultBackend: jaeger-collector
+    backends:
+    - name: jaeger-collector
+      type: zipkin
+      sampling: 100.0
+      conf:
+        url: http://jaeger-collector.kuma-tracing:9411/api/v2/spans
+  metrics:
+    enabledBackend: prometheus-1
+    backends:
+    - name: prometheus-1
+      type: prometheus
+  logging:
+    # TrafficLog policies may leave the `backend` field undefined.
+    # In that case the logs will be forwarded into the `defaultBackend` of that Mesh.
+    defaultBackend: file
+    # List of logging backends that can be referred to by name
+    # from TrafficLog policies of that Mesh.
+    backends:
+      - name: logstash
+        # Use `format` field to adjust the access log format to your use case.
+        format: '{"start_time": "%START_TIME%", "source": "%KUMA_SOURCE_SERVICE%", "destination": "%KUMA_DESTINATION_SERVICE%", "source_address": "%KUMA_SOURCE_ADDRESS_WITHOUT_PORT%", "destination_address": "%UPSTREAM_HOST%", "duration_millis": "%DURATION%", "bytes_received": "%BYTES_RECEIVED%", "bytes_sent": "%BYTES_SENT%"}'
+        type: tcp
+        # Use `config` field to co configure a TCP logging backend.
+        conf:
+          # Address of a log collector.
+          address: 127.0.0.1:5000
+      - name: file
+        type: file
+        # Use `file` field to configure a file-based logging backend.
+        conf:
+          path: /tmp/access.log
+        # When `format` field is omitted, the default access log format will be used.
+
+---
+
+apiVersion: kuma.io/v1alpha1
+kind: TrafficLog
+metadata:
+  name: all-traffic
+mesh: default
+spec:
+  # This TrafficLog policy applies all traffic in that Mesh.
+  sources:
+    - match:
+        kuma.io/service: '*'
+  destinations:
+    - match:
+        kuma.io/service: '*'
+  # When `backend ` field is omitted, the logs will be forwarded into the `defaultBackend` of that Mesh.
+

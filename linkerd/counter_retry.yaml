@@ -1,0 +1,14 @@
+apiVersion: linkerd.io/v1alpha2
+kind: ServiceProfile
+metadata:
+  creationTimestamp: null
+  name: counter-api.default.svc.cluster.local
+  namespace: default
+spec:
+  routes:
+    - condition:
+        method: GET
+        pathRegex: /
+      name: GET /
+      timeout: 600ms ### ADD THIS LINE ###
+      isRetryable: false ### ADD THIS LINE ###

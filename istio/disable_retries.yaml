@@ -1,0 +1,29 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: no-retries-for-counter-api
+spec:
+  hosts:
+  - counter-api.default.svc.cluster.local
+  http:
+  - retries:
+      attempts: 0
+    route:
+      - destination:
+          host: counter-api.default.svc.cluster.local
+
+---
+
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: no-retries-for-backend-api
+spec:
+  hosts:
+  - backend-api.default.svc.cluster.local
+  http:
+  - retries:
+      attempts: 0
+    route:
+      - destination:
+          host: backend-api.default.svc.cluster.local

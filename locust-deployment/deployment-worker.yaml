@@ -1,0 +1,82 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+    name: locust-worker
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: locust-worker
+    version: v1
+  name: locust-worker
+spec:
+  replicas: 30
+  selector:
+    matchLabels:
+      app: locust-worker
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+          sidecar.istio.io/proxyCPULimit: "175m"
+          sidecar.istio.io/proxyMemoryLimit: "512Mi"
+          sidecar.istio.io/inject: "true"
+          linkerd.io/inject: "enabled"
+          consul.hashicorp.com/consul-sidecar-cpu-limit: "175m"
+          consul.hashicorp.com/consul-sidecar-memory-limit: "512Mi"
+          consul.hashicorp.com/connect-inject: "true"
+          config.linkerd.io/proxy-cpu-limit: '175m'
+      creationTimestamp: null
+      labels:
+        app: locust-worker
+        version: v1
+    spec:
+      serviceAccountName: locust-worker
+      nodeSelector:
+        app: test
+      #    nodeName: ip-172-31-12-234.eu-west-3.compute.internal
+      containers:
+      - image: dahny/git-locust:0.45
+   #  - image: prj-meshservices-docker.artifactory.svc.elca.ch/counter-api:0.5
+        args: ["--worker", "--master-host=locust-master"]
+        name: locust-worker
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "150m"
+          limits:
+            memory: "128Mi"
+            cpu: "150m"
+        ports:
+        - containerPort: 8089
+      imagePullSecrets:
+        - name: artifactory
+  #  imagePullSecrets:
+  #     - name: regcred
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: locust-worker
+  name: locust-worker
+spec:
+  ports:
+  - port: 5557
+    name: communication
+  - port: 5558
+    name: communication-plus-1
+  # - name: http-8089
+ #   port: 8089
+ #   protocol: TCP
+#   targetPort: 8089
+  selector:
+    app: locust-worker
+  type: ClusterIP
+status:
+  loadBalancer: {}
+

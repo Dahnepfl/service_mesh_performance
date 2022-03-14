@@ -1,0 +1,21 @@
+apiVersion: kuma.io/v1alpha1
+kind: Timeout
+mesh: default
+metadata:
+  name: timeout-all-default
+spec:
+  sources:
+    - match:
+        kuma.io/service: '*'
+  destinations:
+    - match:
+        kuma.io/service: '*'
+  conf:
+    connectTimeout: 5s
+    tcp:
+      idleTimeout: 3600s
+    http:
+      requestTimeout: 15s
+      idleTimeout: 3600s
+    grpc:
+      streamIdleTimeout: 300s
