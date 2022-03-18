@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: counter-api
+    version: v2
+  name: counter-api-v2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: counter-api
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+          sidecar.istio.io/proxyCPULimit: "200m"
+          sidecar.istio.io/inject: "true"
+          'consul.hashicorp.com/connect-inject': 'true'
+      creationTimestamp: null
+      labels:
+        app: counter-api
+        version: v2
+    spec:
+      containers:
+      - image: prj-meshservices-docker.artifactory.svc.elca.ch/counter-api:0.4
+        name: counter-api
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        ports:
+        - containerPort: 8081
+      imagePullSecrets:
+        - name: artifactory
+status: {}

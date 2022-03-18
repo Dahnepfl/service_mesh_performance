@@ -1,0 +1,68 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+    name: counter-api
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: counter-api
+    version: v1
+  name: counter-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: counter-api
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+          sidecar.istio.io/proxyCPULimit: "100m"
+          sidecar.istio.io/inject: "true"
+          'consul.hashicorp.com/connect-inject': 'true'
+      creationTimestamp: null
+      labels:
+        app: counter-api
+        version: v1
+    spec:
+      serviceAccountName: counter-api
+      containers:
+      - image: dahny/counter-api:0.5
+   #  - image: prj-meshservices-docker.artifactory.svc.elca.ch/counter-api:0.5
+        name: counter-api
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "150m"
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
+        ports:
+        - containerPort: 8081
+      imagePullSecrets:
+        - name: artifactory
+  #  imagePullSecrets:
+  #     - name: regcred
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: counter-api
+  name: counter-api
+spec:
+  ports:
+  - name: http-8081 
+    port: 8081
+    protocol: TCP
+    targetPort: 8081
+  selector:
+    app: counter-api
+  type: ClusterIP
+status:
+  loadBalancer: {}
